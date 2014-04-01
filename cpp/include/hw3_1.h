@@ -1,5 +1,4 @@
-#if !defined(FILE_HW3_1_H)
-#define FILE_HW3_1_H
+#pragma once
 
 #include <fstream>
 #include <list>
@@ -35,6 +34,3 @@ private:
   */
   std::list<inst_t> parseExpr();
 };
-
-#endif
-
