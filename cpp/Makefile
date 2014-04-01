@@ -13,10 +13,10 @@ all: $(TARGET)
 
 .PHONY: clean
 clean:
-	-$(RM) $(TARGET) $(TARGET:$(exe)=.d) $(call fixpath,bin/*)
+	-$(RM) $(TARGET) $(call fixpath,bin/*)
 
 # Compile the target file (e.g. hw3_1.exe)
-$(TARGET): %$(exe): src/%.cpp $(OBJS:=.o)
+$(TARGET): %$(exe): bin/%.o $(OBJS:=.o)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
 # Compile library files, e.g. `instruction`, `tokenizer`
@@ -25,4 +25,4 @@ bin/%.o: src/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 # Include compiler-generated dependency files
--include $(OBJS:=.d) $(TARGET:$(exe)=.d)
+-include $(OBJS:=.d)
