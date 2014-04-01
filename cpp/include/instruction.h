@@ -8,11 +8,12 @@ struct inst_t {
     pow, imul, idiv, add, sub, setle,
     closure, ret, jz
   };
-  // constructor that parse the given string into an instruction
-  explicit inst_t(const std::string& repr);
-  std::string toString() const;
-
+  // components of an instruction
   type_t code;
   std::string s_data;
   std::vector<int> i_data;
+
+  std::string toString() const;
+  // parse the given string into an instruction
+  static inst_t parse(const std::string& repr);
 };
