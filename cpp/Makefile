@@ -21,6 +21,7 @@ $(TARGET): %$(exe): src/%.cpp $(OBJS:=.o)
 
 # Compile library files, e.g. `instruction`, `tokenizer`
 bin/%.o: src/%.cpp
+	if [ ! -d "./bin" ]; then mkdir ./bin; fi
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 # Include compiler-generated dependency files
