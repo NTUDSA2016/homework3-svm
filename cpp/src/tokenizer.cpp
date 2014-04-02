@@ -11,13 +11,6 @@ bool Tokenizer::hasMore() {
   return not this->is_eof;
 }
 
-string Tokenizer::peekToken() {
-  this->fillToken();
-  if (this->is_eof)
-    throw std::runtime_error("Tokenizer::peekToken(): going over end of input");
-  return this->next_token;
-}
-
 string Tokenizer::nextToken() {
   this->fillToken();
   if (this->is_eof)

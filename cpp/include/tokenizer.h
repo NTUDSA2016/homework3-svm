@@ -32,11 +32,6 @@ public:
   bool hasMore();
 
   /*
-  @description: peek the next token in the buffer
-  */
-  std::string peekToken();
-
-  /*
   @description:
     remove the next token from the buffer and return it
   */
