@@ -31,7 +31,9 @@ string inst_t::toString() const {
   static const std::unordered_map<type_t, string> inst_str = {
       {type_t::pow, "pow"}, {type_t::imul, "imul"}, {type_t::idiv, "idiv"},
       {type_t::add, "add"}, {type_t::sub, "sub"},   {type_t::setle, "setle"},
-      {type_t::closure, "closure"}, {type_t::ret, "ret"}, {type_t::jz, "jz"}
+      {type_t::push, "push"}, {type_t::access, "access"},
+      {type_t::closure, "closure"}, {type_t::apply, "apply"},
+      {type_t::ret, "ret"}, {type_t::jz, "jz"}
   };
   string res = inst_str.at(this->code);
   if (this->s_data.size())

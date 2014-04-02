@@ -6,7 +6,7 @@
 struct inst_t {
   enum class type_t {
     pow, imul, idiv, add, sub, setle,
-    closure, ret, jz
+    push, access, closure, apply, ret, jz
   };
   // components of an instruction
   type_t code;
