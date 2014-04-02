@@ -6,20 +6,20 @@
 
 using std::string;
 
-bool Tokenizer::has_more() {
-  this->fill_token();
+bool Tokenizer::hasMore() {
+  this->fillToken();
   return not this->is_eof;
 }
 
 string Tokenizer::peekToken() {
-  this->fill_token();
+  this->fillToken();
   if (this->is_eof)
     throw std::runtime_error("Tokenizer::peekToken(): going over end of input");
   return this->next_token;
 }
 
 string Tokenizer::nextToken() {
-  this->fill_token();
+  this->fillToken();
   if (this->is_eof)
     throw std::runtime_error("Tokenizer::nextToken(): going over end of input");
   string token;
@@ -27,7 +27,7 @@ string Tokenizer::nextToken() {
   return token;
 }
 
-void Tokenizer::fill_token() {
+void Tokenizer::fillToken() {
   using std::isdigit;
   using std::isalpha;
   using std::isalnum;
@@ -69,7 +69,7 @@ void Tokenizer::fill_token() {
           break;
       }
       if (not syms[i])
-        throw std::runtime_error(string("Tokenize::fill_token(): unknown input symbol ") + *nxt);
+        throw std::runtime_error(string("Tokenize::fillToken(): unknown input symbol ") + *nxt);
     }
     this->next_token = string(this->cur, nxt);
     this->cur = nxt;
