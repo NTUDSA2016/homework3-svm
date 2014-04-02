@@ -67,10 +67,118 @@ list<inst_t> Parser::parseTopExpr() {
   }
 }
 
+static list<string> desugar(
+  list<string>::const_iterator cur,
+  const list<string>::const_iterator& end)
+{
+  list<string> tokens;
+  if (*cur == "let") {
+    // syntactic extension: let
+    // syntax: let identifier [x1 x2 ... xn] = expr in body
+    // transformed to: (\identifier -> body) (expr)
+    //                or (\identifier -> body) (\x1 x2 ... xn -> expr)
+    ++cur; //eat 'let'
+    tokens.insert(tokens.end(), {"(", "(", "\\", *cur, "->"});
+    ++cur; //eat identifier
+    vector<string> params;
+    while (*cur != "=") {
+      params.emplace_back(*cur);
+      ++cur;
+    }
+    ++cur; //eat '='
+
+    list<string>::const_iterator nxt;
+    for (nxt = cur; nxt != end; ++nxt)
+      if (*nxt == "in") break;
+    list<string> expr(desugar(cur, nxt));
+    cur = nxt;
+
+    ++cur; //eat 'in'
+    tokens.splice(tokens.end(), desugar(cur, end));
+    tokens.insert(tokens.end(), {")", "@", "("});
+    for (const string& param : params)
+      tokens.insert(tokens.end(), {"\\", param, "->"});
+    tokens.splice(tokens.end(), expr);
+    tokens.insert(tokens.end(), {")", ")"});
+  } else if (*cur == "\\") {
+    // syntactic extension: multivariate function
+    // syntax: topexpr ::= \ x1 x2 x3 ... xn -> body
+    // transformed to: \ x1 -> \ x2 -> \ x3 -> ... \ xn -> body
+    ++cur;
+    while (cur!=end and *cur!="->") {
+      tokens.insert(tokens.end(), {"\\", *cur, "->"});
+      ++cur;
+    }
+    ++cur;
+    tokens.splice(tokens.end(), desugar(cur, end));
+  } else if (*cur == "if") {
+    list<string>::const_iterator nxt;
+
+    tokens.emplace_back("if");
+    ++cur;
+
+    for (nxt = cur; nxt != end; ++nxt)
+      if (*nxt == "then") break;
+    tokens.splice(tokens.end(), desugar(cur, nxt));
+
+    tokens.emplace_back("then");
+    cur = nxt; ++cur;
+
+    for (nxt = cur; nxt != end; ++nxt)
+      if (*nxt == "else") break;
+    tokens.splice(tokens.end(), desugar(cur, nxt));
+
+    tokens.emplace_back("else");
+    cur = nxt; ++cur;
+
+    tokens.splice(tokens.end(), desugar(cur, end));
+  } else {
+    // syntactic extension: function application
+    // syntax: expr ::= expr expr
+    // transformed to: expr @ expr
+    bool prev_sym = true, curr_sym = false;
+    for (; cur != end; ++cur) {
+      list<string> token_buf;
+      if (*cur=="@" || *cur=="^" || *cur=="*" || *cur=="/"
+        || *cur=="+" || *cur=="-" || *cur=="<=")
+      {
+        token_buf.emplace_back(*cur);
+        curr_sym = true;
+      } else if (*cur == "(") {
+        token_buf.emplace_back("(");
+        list<string>::const_iterator nxt;
+        int level = 0;
+        ++cur; //eat '('
+        for (nxt = cur; nxt != end; ++nxt) {
+          if (*nxt == "(") ++level;
+          else if (*nxt == ")") --level;
+          if (level < 0) break;
+        }
+        token_buf.splice(token_buf.end(), desugar(cur, nxt));
+        token_buf.emplace_back(")");
+        cur = nxt;
+        curr_sym = false;
+      } else {
+        token_buf.emplace_back(*cur);
+        curr_sym = false;
+      }
+      if (not prev_sym and not curr_sym)
+        tokens.emplace_back("@");
+      tokens.splice(tokens.end(), token_buf);
+      prev_sym = curr_sym;
+    }
+  }
+  return tokens;
+}
+
 list<inst_t> Parser::parse() {
+  list<string> token_buf;
   Tokenizer tokenizer(this->input_stream);
   while (tokenizer.hasMore())
-    this->tokens.emplace_back(tokenizer.nextToken());
+    token_buf.emplace_back(tokenizer.nextToken());
+  token_buf = desugar(token_buf.cbegin(), token_buf.cend());
+  this->tokens.clear();
+  this->tokens.insert(this->tokens.end(), token_buf.begin(), token_buf.end());
   this->cur = this->tokens.cbegin();
   return this->parseTopExpr();
 }
