@@ -8,6 +8,7 @@ using std::string;
 using std::vector;
 
 // add an hash instance for the enum class inst_t::type_t
+// simply casts the (strongly typed) enum to its underlying type
 // http://stackoverflow.com/questions/18837857/
 namespace std {
   template<>
