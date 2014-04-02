@@ -1,6 +1,6 @@
 -include Makefile.common
 
-CXXFLAGS = -std=c++11 -MMD -g -Wall -Wshadow -Wextra -Wno-narrowing -pedantic -Iinclude
+CXXFLAGS = -std=c++11 -MMD -g -Wall -Wshadow -Wextra -Wconversion -pedantic -Iinclude
 CXX = g++
 
 OBJS = \

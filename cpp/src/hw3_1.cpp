@@ -47,7 +47,8 @@ list<inst_t> Parser::parseTopExpr() {
 
     list<inst_t> buf;
     buf.splice(buf.end(), con);
-    buf.push_back({inst_t::type_t::jz, "", {th.size(), th.size() + el.size()}});
+    buf.push_back({inst_t::type_t::jz, "", {static_cast<int>(th.size()),
+                                            static_cast<int>(th.size() + el.size())}});
     buf.splice(buf.end(), th);
     buf.splice(buf.end(), el);
     return buf;
@@ -58,7 +59,7 @@ list<inst_t> Parser::parseTopExpr() {
     body.push_back({inst_t::type_t::ret, "", {}});
 
     list<inst_t> buf;
-    buf.push_back({inst_t::type_t::closure, id, {body.size()}});
+    buf.push_back({inst_t::type_t::closure, id, {static_cast<int>(body.size())}});
     buf.splice(buf.end(), body);
     return buf;
   } else {
