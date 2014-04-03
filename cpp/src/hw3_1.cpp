@@ -68,15 +68,16 @@ list<inst_t> Parser::parseTopExpr() {
 }
 
 static list<string> desugar(
-  list<string>::const_iterator cur,
+  list<string>::const_iterator& cur,
   const list<string>::const_iterator& end)
 {
   list<string> tokens;
   if (*cur == "let") {
     // syntactic extension: let
-    // syntax: let identifier [x1 x2 ... xn] = expr in body
-    // transformed to: (\identifier -> body) (expr)
-    //                or (\identifier -> body) (\x1 x2 ... xn -> expr)
+    // syntax: topexpr ::= let identifier [x1 x2 ... xn] = e in body
+    //   where e, body : topexpr
+    // transformed to: (\identifier -> body) (e)
+    //                or (\identifier -> body) (\x1 x2 ... xn -> e)
     ++cur; //eat 'let'
     tokens.insert(tokens.end(), {"(", "(", "\\", *cur, "->"});
     ++cur; //eat identifier
@@ -87,11 +88,7 @@ static list<string> desugar(
     }
     ++cur; //eat '='
 
-    list<string>::const_iterator nxt;
-    for (nxt = cur; nxt != end; ++nxt)
-      if (*nxt == "in") break;
-    list<string> expr(desugar(cur, nxt));
-    cur = nxt;
+    list<string> expr(desugar(cur, end));
 
     ++cur; //eat 'in'
     tokens.splice(tokens.end(), desugar(cur, end));
@@ -100,9 +97,11 @@ static list<string> desugar(
       tokens.insert(tokens.end(), {"\\", param, "->"});
     tokens.splice(tokens.end(), expr);
     tokens.insert(tokens.end(), {")", ")"});
+
   } else if (*cur == "\\") {
     // syntactic extension: multivariate function
     // syntax: topexpr ::= \ x1 x2 x3 ... xn -> body
+    //   where body : topexpr
     // transformed to: \ x1 -> \ x2 -> \ x3 -> ... \ xn -> body
     ++cur;
     while (cur!=end and *cur!="->") {
@@ -112,32 +111,23 @@ static list<string> desugar(
     ++cur;
     tokens.splice(tokens.end(), desugar(cur, end));
   } else if (*cur == "if") {
-    list<string>::const_iterator nxt;
-
     tokens.emplace_back("if");
-    ++cur;
-
-    for (nxt = cur; nxt != end; ++nxt)
-      if (*nxt == "then") break;
-    tokens.splice(tokens.end(), desugar(cur, nxt));
+    ++cur; //eat 'if'
+    tokens.splice(tokens.end(), desugar(cur, end));
 
     tokens.emplace_back("then");
-    cur = nxt; ++cur;
-
-    for (nxt = cur; nxt != end; ++nxt)
-      if (*nxt == "else") break;
-    tokens.splice(tokens.end(), desugar(cur, nxt));
+    ++cur; //eat 'then'
+    tokens.splice(tokens.end(), desugar(cur, end));
 
     tokens.emplace_back("else");
-    cur = nxt; ++cur;
-
+    ++cur; //eat 'else'
     tokens.splice(tokens.end(), desugar(cur, end));
   } else {
     // syntactic extension: function application
     // syntax: expr ::= expr expr
     // transformed to: expr @ expr
     bool prev_sym = true, curr_sym = false;
-    for (; cur != end; ++cur) {
+    for (; cur!=end and *cur!=")" and *cur!="then" and *cur!="else" and *cur!="in"; ++cur) {
       list<string> token_buf;
       if (*cur=="@" || *cur=="^" || *cur=="*" || *cur=="/"
         || *cur=="+" || *cur=="-" || *cur=="<=")
@@ -146,17 +136,9 @@ static list<string> desugar(
         curr_sym = true;
       } else if (*cur == "(") {
         token_buf.emplace_back("(");
-        list<string>::const_iterator nxt;
-        int level = 0;
         ++cur; //eat '('
-        for (nxt = cur; nxt != end; ++nxt) {
-          if (*nxt == "(") ++level;
-          else if (*nxt == ")") --level;
-          if (level < 0) break;
-        }
-        token_buf.splice(token_buf.end(), desugar(cur, nxt));
+        token_buf.splice(token_buf.end(), desugar(cur, end));
         token_buf.emplace_back(")");
-        cur = nxt;
         curr_sym = false;
       } else {
         token_buf.emplace_back(*cur);
@@ -176,7 +158,8 @@ list<inst_t> Parser::parse() {
   Tokenizer tokenizer(this->input_stream);
   while (tokenizer.hasMore())
     token_buf.emplace_back(tokenizer.nextToken());
-  token_buf = desugar(token_buf.cbegin(), token_buf.cend());
+  list<string>::const_iterator pos(token_buf.cbegin());
+  token_buf = desugar(pos, token_buf.cend());
   this->tokens.clear();
   this->tokens.insert(this->tokens.end(), token_buf.begin(), token_buf.end());
   this->cur = this->tokens.cbegin();
