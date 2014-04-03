@@ -43,7 +43,7 @@ list<inst_t> Parser::parseTopExpr() {
 
     if (not eat("else")) throw std::runtime_error("expecting 'else'");
     list<inst_t> el(this->parseExpr());
-    th.push_back({inst_t::type_t::ret, "", {}});
+    el.push_back({inst_t::type_t::ret, "", {}});
 
     list<inst_t> buf;
     buf.splice(buf.end(), con);
