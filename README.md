@@ -15,7 +15,7 @@ The directories contain:
     Reference implementations. The `linux-x86_64` version
     works on any of the CSIE workstations.
 
-    We will use the reference `hw3_2` for grading your
+    We will use the reference implementation `hw3_2` for grading your
     programming homework on CSIE workstations.
 
 - `tests`
