@@ -68,8 +68,8 @@ list<inst_t> Parser::parseTopExpr() {
 }
 
 static list<string> desugar(
-  list<string>::const_iterator& cur,
-  const list<string>::const_iterator& end)
+  vector<string>::const_iterator& cur,
+  const vector<string>::const_iterator& end)
 {
   list<string> tokens;
   if (*cur == "let") {
@@ -154,14 +154,14 @@ static list<string> desugar(
 }
 
 list<inst_t> Parser::parse() {
-  list<string> token_buf;
+  vector<string> token_buf;
   Tokenizer tokenizer(this->input_stream);
   while (tokenizer.hasMore())
     token_buf.emplace_back(tokenizer.nextToken());
-  list<string>::const_iterator pos(token_buf.cbegin());
-  token_buf = desugar(pos, token_buf.cend());
+  vector<string>::const_iterator pos(token_buf.cbegin());
+  list<string> des_tokens(desugar(pos, token_buf.cend()));
   this->tokens.clear();
-  this->tokens.insert(this->tokens.end(), token_buf.begin(), token_buf.end());
+  this->tokens.insert(this->tokens.end(), des_tokens.begin(), des_tokens.end());
   this->cur = this->tokens.cbegin();
   return this->parseTopExpr();
 }
