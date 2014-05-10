@@ -1,0 +1,1 @@
+(\u -> u @ u) @ (\x___ -> \n -> \acc -> if n <= 10000 then x___ @ x___ @ (n + 1) @ (acc + n) else acc) @ 0 @ 0
